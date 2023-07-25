@@ -1,0 +1,99 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background: url(menu.jpg) no-repeat center center fixed;
+            background-size: cover;
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+        }
+
+        button {
+            border: none;
+            border-radius: 100px;
+            padding: 30px 60px;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: url(button.jpg);
+            color: rgb(60, 0, 0);
+            font-weight: bold;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 400%;
+            cursor: none;
+            box-shadow: 0px 0px 13px 5px rgba(255, 255, 255, 1);
+            transition: .4s;
+        }
+
+        button:hover {
+            transform: translate(-50%, calc(-50% - 10px));
+            box-shadow: 0px 0px 13px 5px rgb(213, 255, 196);
+        }
+
+        iframe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .help {
+            background: rgba(255, 255, 255, 0.83);
+            padding: 15px;
+            border-radius: 15px;
+            width: fit-content;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 120%;
+        }
+
+        .help kbd {
+            margin-right: 8px;
+            font-weight: bold;
+            font-size: 110%;
+            padding: 7px;
+            background: lightskyblue;
+            border-radius: 7px;
+            box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="help">
+        <p><kbd>Left Click</kbd>Shoot</p>
+        <p><kbd>Right Click</kbd>Reload</p>
+        <p><kbd>Middle Click</kbd>Slow Motion :</p>
+        <p>Enables by killing 2 birds in 1 shoot</p>
+        <p><kbd>A</kbd>Auto Reload Cheat!</p>
+        <p><kbd>P</kbd>Bird Maker Cheat!</p>
+        <p><kbd>R</kbd>Reset Game</p>
+        <p><kbd>F5</kbd>Exit</p>
+    </div>
+    <button onmouseover="new Audio('silence.mp3').play()" onclick="openGame()">Play Game</button>
+    <script>
+        function openGame() {
+            const iframe = document.createElement('iframe');
+            const body = document.querySelector('body');
+            iframe.src = 'ingame.html';
+            body.innerHTML = '';
+            body.appendChild(iframe);
+            document.querySelector('html').requestFullscreen();
+        }
+    </script>
+</body>
+
+</html>

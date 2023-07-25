@@ -1,0 +1,409 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background: rgb(55, 98, 144);
+            margin: 0;
+            cursor: none;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            text-shadow: 0 0 3px #FF0000, 0 0 5px #0000FF;
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+            height: 100vh;
+        }
+
+        #sky {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #sky-detail {
+            background: url(sky-bg.jpg);
+            background-size: cover;
+            width: 100%;
+            height: 100%;
+            transform: scale(1.5);
+            transition: .1s ease-out;
+        }
+
+        .bird {
+            position: absolute;
+            height: 17%;
+            width: auto;
+        }
+
+        #smoke {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: .45s;
+        }
+
+        #slow-bg {
+            background: radial-gradient(transparent, black);
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: .5s;
+        }
+
+        #sniper {
+            background: url(sniper.png);
+            background-position: center;
+            background-size: cover;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        #s {
+            position: fixed;
+            left: 8;
+            bottom: 4;
+            height: 52px;
+            width: auto;
+            opacity: .2;
+            transition: .4s;
+        }
+
+        #s-error {
+            position: fixed;
+            color: rgba(255, 68, 0, 0.5);
+            left: 50;
+            bottom: 10;
+            font-size: 200%;
+            opacity: 0;
+            transition: .2s;
+        }
+
+        .reload {
+            animation: reload .9s;
+        }
+
+        @keyframes reload {
+            25% {
+                transform: scale(1.47) translateY(2%);
+            }
+
+            50% {
+                transform: scale(1.44) translateY(-3%);
+            }
+
+            75% {
+                transform: scale(1.47);
+            }
+
+            100% {
+                transform: scale(1.5);
+            }
+        }
+
+        #reload-line {
+            position: fixed;
+            background: rgb(100, 0, 0);
+            width: 30px;
+            right: 0;
+            bottom: 0;
+            height: 100%;
+        }
+
+        #shoots {
+            position: fixed;
+            font-size: 190%;
+            color: orangered;
+            opacity: .85;
+            right: 40;
+            bottom: 5;
+        }
+
+        #console {
+            position: fixed;
+            font-size: 160%;
+            padding: 10px;
+            opacity: .8;
+        }
+
+        #console>div {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sky">
+        <div id="sky-detail"></div>
+    </div>
+    <img id="smoke" src="smoke.png">
+    <div id="slow-bg"></div>
+    <div id="sniper"></div>
+    <img id="s" src="s.png">
+    <div id="s-error">Reload!</div>
+    <div id="reload-line"></div>
+    <div id="shoots">0</div>
+    <div id="console">
+        <div style="color:rgb(26,224,26)">Time <span id="time">0.000</span>s</div>
+        <div style="color:rgb(255,255,255)">KPM <span id="kpm">0.000</span></div>
+        <div style="color:rgb(240,139,25)">Kills <span id="kills">0</span><span id="birdNo"
+                style="font-size:65%">/0</span></div>
+    </div>
+    <script src="jquery.js"></script>
+    <script>
+        console.clear();
+        startTime = new Date().getTime();
+        kills = 0;
+        birdNo = 0;
+        setInterval(function () {
+            if (typeof slow === 'undefined') {
+                nowTime = new Date().getTime();
+                time = (nowTime - startTime) / 1000;
+                kpm = kills / (time / 60);
+                $('#time').html(time.toFixed(3));
+                $('#kpm').html(kpm.toFixed(3));
+            }
+            $('#birdNo').html('/' + (birdNo - $('.bird:not(.kill)').length));
+        }, 0);
+        playMe('bg-music.mp3', 9, true);
+        $("body").mousemove(function () {
+            positionX = event.clientX - window.innerWidth / 2;
+            positionY = event.clientY - window.innerHeight / 2;
+            $('#sky').css('transform', 'translate(calc(' + positionX / -1.7 + 'px - 50%),calc(' + positionY / -1.8 + 'px - 50%))');
+        });
+        reloadStart = 'reloadStart';
+        reload = 'reload';
+        $('body').contextmenu(function (e) {
+            e.preventDefault();
+            if (typeof reloadStart === 'undefined') {
+                reloadStart = 'reloadStart';
+                playMe('reload.mp3', 100, false);
+                $('#sky-detail').addClass('reload');
+                $('#reload-line').css('transition', '1s');
+                $('#reload-line').css('height', '100%');
+                setTimeout(function () {
+                    $('#s-error').css('opacity', '0');
+                    $('#sky-detail').removeClass('reload');
+                    reload = 'reload';
+                }, 1e3);
+            }
+        });
+        shoots = 0;
+        $('body').click(function (e) {
+            if (typeof slow !== 'undefined') {
+                startTime += new Date().getTime() - slowStart;
+                $(".slow").each(function () {
+                    $(this).css('transition', parseFloat($(this).css('transition-duration').replace('s', '')) / 5 + 's linear');
+                    if ($(this).attr('style').match(/top: \w+/g)) {
+                        $(this).css('top', parseFloat($(this).attr('style').match(/top: \w+/g)[0].match(/\d+/g)) - 1 + 'px');
+                    } else {
+                        $(this).css('top', parseFloat($(this).attr('style').match(/top: -\w+/g)[0].match(/\d+/g)) * -1 - 1 + 'px');
+                    }
+                    if ($(this).hasClass('bird-left')) {
+                        $(this).css('left', 'calc(100% + ' + $(this).css('left') + ')');
+                    } else {
+                        $(this).css('right', 'calc(100% + ' + $(this).css('right') + ')');
+                    }
+                    $(this).removeClass('slow');
+                });
+                $('#sky').css('transition', 'unset');
+                $('#slow-bg').css('opacity', '0');
+                delete slow;
+            }
+            if (typeof reload !== 'undefined') {
+                delete reload;
+                shoots++;
+                $('#shoots').html(shoots);
+                playMe('shoot.mp3', 100, false);
+                $('#sky-detail').css('transform', 'scale(1.55) translateY(9%)');
+                $('#smoke').css('top', '-3%');
+                $('#smoke').css('opacity', '.3');
+                $('#reload-line').css('transition', '.2s');
+                $('#reload-line').css('height', '0%');
+                setTimeout(function () {
+                    shootKills = 0;
+                    $(".bird:not(.kill)").each(function () {
+                        bodyWidth = $('body').width();
+                        bodyHeight = $('body').height();
+                        thisWidth = $(this).width();
+                        thisHeight = $(this).height();
+                        if ($(this).hasClass('bird-left')) {
+                            birdLeft = thisWidth / 6.5;
+                            onX = [((bodyWidth - thisWidth) / 2) - birdLeft, ((bodyWidth + thisWidth) / 2 - (thisWidth / 2)) - birdLeft];
+                        } else {
+                            onX = [(bodyWidth - thisWidth) / 2, (bodyWidth + thisWidth) / 2 - (thisWidth / 2)];
+                        }
+                        onY = [(bodyHeight - thisHeight) / 2 + (thisHeight / 1.2), (bodyHeight + thisHeight) / 2 + (thisHeight / 5.5)];
+                        birdX = $(this).offset().left + thisWidth / 2;
+                        birdY = $(this).offset().top + thisHeight / 2;
+                        if (birdX > onX[0] && birdX < onX[1] && birdY > onY[0] && birdY < onY[1]) {
+                            kills++;
+                            shootKills++;
+                            $('#kills').html(kills);
+                            $(this).addClass('kill');
+                            $(this).css('transition', '1.35s');
+                            $(this).css('top', '100%');
+                            addBird();
+                        }
+                    });
+                    if (shootKills > 1) {
+                        $('#s').css('opacity', '1');
+                    }
+                    $('#sky-detail').css('transition', '.65s ease');
+                    $('#sky-detail').css('transform', 'scale(1.5)');
+                    setTimeout(function () {
+                        $('#smoke').css('top', '-9%');
+                        $('#reload-line').css('height', '48px');
+                        setTimeout(function () {
+                            delete reloadStart;
+                            setTimeout(function () {
+                                if (typeof autoReload !== 'undefined') {
+                                    $('body').contextmenu();
+                                }
+                                setTimeout(function () {
+                                    $('#sky-detail').css('transition', '.1s ease-out');
+                                    $('#smoke').css('opacity', '0');
+                                    setTimeout(function () {
+                                        $('#smoke').css('transition', '0s');
+                                        $('#smoke').css('top', '0');
+                                        $('#smoke').css('transition', '.45s');
+                                    }, 350);
+                                }, 150);
+                            }, 100);
+                        }, 200);
+                    }, 200);
+                }, 150);
+            } else if (typeof reloadStart === 'undefined') {
+                playMe('empty.mp3', 100, false);
+            }
+        });
+        setInterval(function () {
+            $(".bird").each(function () {
+                if (parseFloat($(this).css('left').replace('px', '')) >= window.innerWidth || parseFloat($(this).css('right').replace('px', '')) >= window.innerWidth) {
+                    $(this).remove();
+                }
+            });
+            if ($('.bird').length < 3) {
+                addBird();
+                addBird();
+                addBird();
+            }
+        }, 1e3);
+
+        function addBird() {
+            halfBird = window.innerHeight * 0.1;
+            birdNo++;
+            classBird = 'bird-' + birdNo;
+            $('#sky-detail').append('<img class="bird ' + classBird + '" src="bird.gif">');
+            classBird = '.' + classBird;
+            if (random(0, 1) == 0) {
+                $(classBird).css('left', '0');
+                $(classBird).css('transform', 'rotateY(180deg)');
+                bird = 'left';
+            } else {
+                $(classBird).css('right', '0');
+                bird = 'right';
+            }
+            $(classBird).css('top', random(0, window.innerHeight) - halfBird + 'px');
+            $(classBird).css('transition', random(8, 16) + '.' + random(0, 999) + 's linear');
+            $(classBird).css('top', window.innerHeight * random(7, 12) / 10 - parseFloat($(classBird).css('top').replace('px', '')) - halfBird);
+            if (bird == 'left') {
+                $(classBird).css('left', '100%');
+                $(classBird).addClass('bird-left');
+            } else {
+                $(classBird).css('right', '100%');
+            }
+            if (typeof slow !== 'undefined') {
+                runSlow();
+            }
+        }
+        addBird();
+        addBird();
+        addBird();
+
+        function runSlow() {
+            $(".bird:not(.kill,.slow)").each(function () {
+                $(this).css('transition', parseFloat($(this).css('transition-duration').replace('s', '')) * 5 + 's linear');
+                if ($(this).attr('style').match(/top: \w+/g)) {
+                    $(this).css('top', parseFloat($(this).attr('style').match(/top: \w+/g)[0].match(/\d+/g)) + 1 + 'px');
+                } else {
+                    $(this).css('top', parseFloat($(this).attr('style').match(/top: -\w+/g)[0].match(/\d+/g)) * -1 + 1 + 'px');
+                }
+                if ($(this).hasClass('bird-left')) {
+                    $(this).css('left', 'calc(99% + ' + $(this).css('left') + ')');
+                } else {
+                    $(this).css('right', 'calc(99% + ' + $(this).css('right') + ')');
+                }
+                $(this).addClass('slow');
+            });
+        }
+        $("body").mousedown(function (b) {
+            if (b.which == 2 && $('#s').css('opacity') == '1') {
+                if (typeof reload !== 'undefined') {
+                    $('#s').css('opacity', '.2');
+                    slow = 'slow';
+                    slowStart = new Date().getTime();
+                    runSlow();
+                    $('#sky').css('transition', '.2s linear');
+                    $('#slow-bg').css('opacity', '1');
+                } else {
+                    $('#s-error').css('opacity', '1');
+                }
+            }
+        });
+
+        function random(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        $(window).resize(() => { console.log('don\'t resize game page') });
+        jQuery(document).on('keyup', function (evt) {
+            // A => Auto Reload
+            if (evt.keyCode == 65) {
+                if (typeof autoReload !== 'undefined') {
+                    delete autoReload;
+                } else {
+                    $('body').contextmenu();
+                    autoReload = 'autoReload';
+                }
+            }
+            // P => Bird Maker
+            if (evt.keyCode == 80) {
+                addBird();
+            }
+            // R => Reset Game
+            if (evt.keyCode == 82) {
+                location.reload();
+            }
+        });
+
+        function playMe(musicURL, musicVolume, musicLoop) {
+            music = new Audio(musicURL);
+            music.volume = musicVolume / 100;
+            music.loop = musicLoop;
+            music.play();
+        }
+    </script>
+</body>
+
+</html>
